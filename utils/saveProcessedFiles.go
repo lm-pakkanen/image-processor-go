@@ -1,22 +1,25 @@
 package utils
 
 import (
+	"fmt"
 	"os"
 	"strings"
+
+	"github.com/zecuel/go/image-processor/helpers"
 )
 
-func createDirectoryIfNotExists(dirname string) (err error) {
-	_, err = os.Stat(dirname)
+func createDirectoryIfNotExists(dirName string) (err error) {
+	_, err = os.Stat(dirName)
 
 	if os.IsNotExist(err) {
-		err = os.MkdirAll(dirname, 0755)
+		err = os.MkdirAll(dirName, 0755)
 	}
 
 	return err
 }
 
-func SaveProcessedFiles(files map[string][]byte, destPath string) (savedFileCount int, err error) {
-	err = createDirectoryIfNotExists(destPath)
+func SaveProcessedFiles(files helpers.FileMap, pathOptions *helpers.PathOptions) (savedFileCount int, err error) {
+	err = createDirectoryIfNotExists(pathOptions.Dest)
 
 	if err != nil {
 		return 0, err
@@ -28,13 +31,13 @@ func SaveProcessedFiles(files map[string][]byte, destPath string) (savedFileCoun
 
 		fileName := fullFileName[lastDirectoryIndex+1:]
 
-		newFullFileName := destPath + "\\" + fileName
+		destinationFullFileName := fmt.Sprintf("%s\\%s", pathOptions.Dest, fileName)
 
 		if err != nil {
 			return 0, err
 		}
 
-		file, err := os.Create(newFullFileName)
+		file, err := os.Create(destinationFullFileName)
 
 		if err != nil {
 			return 0, err

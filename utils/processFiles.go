@@ -6,44 +6,44 @@ import (
 	"image"
 	"image/jpeg"
 	"image/png"
-	"strings"
 
 	"github.com/nfnt/resize"
+	"github.com/zecuel/go/image-processor/helpers"
 )
 
-func getNewDimension(imageInfo image.Config, maximumDimensionPx int) (height int, width int) {
-	var imageHeight int = imageInfo.Height
-	var imageWidth int = imageInfo.Width
+func getNewDimension(imageInfo image.Config, options *helpers.ProcessorOptions) (heightPx int, widthPx int) {
+	var imageHeightPx int = imageInfo.Height
+	var imageWidthPx int = imageInfo.Width
 
-	var maxCurrDimension int = 0
+	var maxDimensionPx int = 0
 
-	if imageHeight > imageWidth {
-		maxCurrDimension = imageHeight
+	if imageHeightPx > imageWidthPx {
+		maxDimensionPx = imageHeightPx
 	} else {
-		maxCurrDimension = imageWidth
+		maxDimensionPx = imageWidthPx
 	}
 
-	var dimensionMultiplier float64 = float64(maximumDimensionPx) / float64(maxCurrDimension)
+	var dimensionMultiplier float64 = float64(options.MaximumDimensionPx) / float64(maxDimensionPx)
 
 	// Image is already smaller than maximumDimension
 	if dimensionMultiplier > 1.0 {
-		return imageHeight, imageWidth
+		return imageHeightPx, imageWidthPx
 	}
 
-	var newHeight int = int(float64(imageHeight) * dimensionMultiplier)
-	var newWidth int = int(float64(imageWidth) * dimensionMultiplier)
+	var newHeightPx int = int(float64(imageHeightPx) * dimensionMultiplier)
+	var newWidthPx int = int(float64(imageWidthPx) * dimensionMultiplier)
 
-	return newHeight, newWidth
+	return newHeightPx, newWidthPx
 }
 
-func imgToBytes(img image.Image, imgQuality int, format string) (imgBytes []byte, err error) {
+func imgToBytes(img image.Image, format string, options *helpers.ProcessorOptions) (imgBytes []byte, err error) {
 	fileDataBuf := new(bytes.Buffer)
 
 	if format == "png" {
 		pngEncoder := &png.Encoder{CompressionLevel: png.DefaultCompression}
 		err = pngEncoder.Encode(fileDataBuf, img)
 	} else if format == "jpg" {
-		err = jpeg.Encode(fileDataBuf, img, &jpeg.Options{Quality: imgQuality})
+		err = jpeg.Encode(fileDataBuf, img, &jpeg.Options{Quality: options.ImgQuality})
 	} else {
 		return nil, errors.New("UNSUPPORTED FILE FORMAT")
 	}
@@ -56,10 +56,10 @@ func imgToBytes(img image.Image, imgQuality int, format string) (imgBytes []byte
 	return imgBytes, nil
 }
 
-func ProcessFiles(fileDatas map[string][]byte, maximumDimensionPx int, imgQuality int) (resultFileDatas map[string][]byte, err error) {
-	resultFileDatas = make(map[string][]byte, 100)
+func ProcessFiles(files helpers.FileMap, options *helpers.ProcessorOptions) (resultFiles helpers.FileMap, err error) {
+	resultFiles = make(helpers.FileMap, 100)
 
-	for fileName, fileData := range fileDatas {
+	for fileName, fileData := range files {
 
 		var imageFile image.Image
 		var imageInfo image.Config
@@ -69,11 +69,13 @@ func ProcessFiles(fileDatas map[string][]byte, maximumDimensionPx int, imgQualit
 
 		var format string
 
-		if strings.HasSuffix(fileName, ".png") {
+		sFileName := helpers.String(fileName)
+
+		if sFileName.EndsWith(".png") {
 			format = "png"
 			imageFile, err1 = png.Decode(bytes.NewReader(fileData))
 			imageInfo, err2 = png.DecodeConfig(bytes.NewReader(fileData))
-		} else if strings.HasSuffix(fileName, ".jpg") {
+		} else if sFileName.EndsWith(".jpg") {
 			format = "jpg"
 			imageFile, _, err = image.Decode(bytes.NewReader(fileData))
 			imageInfo, _, err2 = image.DecodeConfig(bytes.NewReader(fileData))
@@ -89,19 +91,18 @@ func ProcessFiles(fileDatas map[string][]byte, maximumDimensionPx int, imgQualit
 			return nil, err2
 		}
 
-		resizeheight, resizeWidth := getNewDimension(imageInfo, maximumDimensionPx)
+		heightPx, widthPx := getNewDimension(imageInfo, options)
 
-		resizedImageFile := resize.Resize(uint(resizeWidth), uint(resizeheight), imageFile, resize.Lanczos3)
-
-		imgAsBytes, err := imgToBytes(resizedImageFile, imgQuality, format)
+		resizedImageFile := resize.Resize(uint(widthPx), uint(heightPx), imageFile, resize.Lanczos3)
+		imgAsBytes, err := imgToBytes(resizedImageFile, format, options)
 
 		if err != nil {
 			return nil, err
 		}
 
-		resultFileDatas[fileName] = imgAsBytes
+		resultFiles[fileName] = imgAsBytes
 
 	}
 
-	return resultFileDatas, nil
+	return resultFiles, nil
 }

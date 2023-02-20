@@ -3,22 +3,32 @@ package utils
 import (
 	"fmt"
 	"os"
+
+	"github.com/zecuel/go/image-processor/helpers"
 )
 
-func fileAlreadyProcessed(fileName string, dest string) bool {
-	fullFileName := fmt.Sprintf("%s\\%s", dest, fileName)
+func getFullFilePath(pathOptions *helpers.PathOptions, fileName string, origin string) string {
+	if origin == "src" {
+		return fmt.Sprintf("%s\\%s", pathOptions.Src, fileName)
+	}
+
+	if origin == "dest" {
+		return fmt.Sprintf("%s\\%s", pathOptions.Dest, fileName)
+	}
+
+	return ""
+}
+
+func isFileAlreadyProcessed(pathOptions *helpers.PathOptions, fileName string) bool {
+	fullFileName := getFullFilePath(pathOptions, fileName, "dest")
 	_, err := os.Stat(fullFileName)
 
 	// If error is nil, file already exists
 	return err == nil
 }
 
-func getFullFilePath(src string, fileName string) string {
-	return fmt.Sprintf("%s\\%s", src, fileName)
-}
-
-func getFilePaths(src string) ([]string, error) {
-	file, err := os.Open(src)
+func getFilePaths(pathOptions *helpers.PathOptions) ([]string, error) {
+	file, err := os.Open(pathOptions.Src)
 
 	if err != nil {
 		return nil, err
@@ -35,24 +45,30 @@ func getFilePaths(src string) ([]string, error) {
 	return fileNames, nil
 }
 
-func GetFiles(src string, dest string) (fileData map[string][]byte, foundFilesCount int, err error) {
-	fileNames, err := getFilePaths(src)
+func GetFiles(pathOptions *helpers.PathOptions) (files helpers.FileMap, foundFilesCount int, err error) {
+	files = make(helpers.FileMap, 100)
+
+	fileNames, err := getFilePaths(pathOptions)
 
 	if err != nil {
 		return nil, foundFilesCount, err
 	}
 
-	var fileDatas map[string][]byte = make(map[string][]byte, 100)
-
 	for _, fileName := range fileNames {
-		// TODO: check for .jpg or .png ending
 
-		if fileAlreadyProcessed(fileName, dest) {
+		sFileName := helpers.String(fileName)
+
+		// Unsupported file format, skip fetching and don't increment found counter
+		if !sFileName.EndsWith(".jpg") && !sFileName.EndsWith(".png") {
+			continue
+		}
+
+		if isFileAlreadyProcessed(pathOptions, fileName) {
 			foundFilesCount++
 			continue
 		}
 
-		fullName := getFullFilePath(src, fileName)
+		fullName := getFullFilePath(pathOptions, fileName, "src")
 
 		data, err := os.ReadFile(fullName)
 
@@ -60,9 +76,9 @@ func GetFiles(src string, dest string) (fileData map[string][]byte, foundFilesCo
 			return nil, foundFilesCount, err
 		}
 
-		fileDatas[fullName] = data
+		files[fullName] = data
 		foundFilesCount++
 	}
 
-	return fileDatas, foundFilesCount, nil
+	return files, foundFilesCount, nil
 }
