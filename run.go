@@ -16,7 +16,6 @@ const DEFAULT_MAX_DIMENSION_PX int = 800
 const DEFAULT_QUALITY int = 75
 
 func main() {
-
 	var filesToProcessCount int = 0
 	var processedCount int = 0
 

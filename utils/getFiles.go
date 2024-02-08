@@ -55,7 +55,6 @@ func GetFiles(pathOptions *helpers.PathOptions) (files helpers.FileMap, foundFil
 	}
 
 	for _, fileName := range fileNames {
-
 		sFileName := helpers.String(fileName)
 
 		// Unsupported file format, skip fetching and don't increment found counter

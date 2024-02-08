@@ -30,7 +30,6 @@ func SaveProcessedFiles(files helpers.FileMap, pathOptions *helpers.PathOptions)
 		lastDirectoryIndex := strings.LastIndex(fullFileName, "\\")
 
 		fileName := fullFileName[lastDirectoryIndex+1:]
-
 		destinationFullFileName := fmt.Sprintf("%s\\%s", pathOptions.Dest, fileName)
 
 		if err != nil {
