@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/zecuel/go/image-processor/helpers"
+	"github.com/lm-pakkanen/image-processor-go/helpers"
 )
 
 func getFullFilePath(pathOptions *helpers.PathOptions, fileName string, origin string) string {

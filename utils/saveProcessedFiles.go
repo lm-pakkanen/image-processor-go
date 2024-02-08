@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/zecuel/go/image-processor/helpers"
+	"github.com/lm-pakkanen/image-processor-go/helpers"
 )
 
 func createDirectoryIfNotExists(dirName string) (err error) {

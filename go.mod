@@ -1,4 +1,4 @@
-module github.com/zecuel/go/image-processor
+module github.com/lm-pakkanen/image-processor-go
 
 go 1.20
 

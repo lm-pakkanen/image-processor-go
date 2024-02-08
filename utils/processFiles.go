@@ -7,8 +7,8 @@ import (
 	"image/jpeg"
 	"image/png"
 
+	"github.com/lm-pakkanen/image-processor-go/helpers"
 	"github.com/nfnt/resize"
-	"github.com/zecuel/go/image-processor/helpers"
 )
 
 func getNewDimension(imageInfo image.Config, options *helpers.ProcessorOptions) (heightPx int, widthPx int) {

@@ -4,8 +4,8 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/zecuel/go/image-processor/helpers"
-	"github.com/zecuel/go/image-processor/utils"
+	"github.com/lm-pakkanen/image-processor-go/helpers"
+	"github.com/lm-pakkanen/image-processor-go/utils"
 )
 
 const ROOT_SOURCE_PATH string = "C:\\Users\\Zecuel\\Desktop\\"
@@ -32,7 +32,7 @@ func main() {
 	var maxDimPx int = *maxDimPxFlagPtr
 	var imgQuality int = *imgQualityFlagPtr
 
-	// -> 25 - 100
+	// 25 <= imgQuality <= 100
 	if imgQuality > 100 {
 		imgQuality = 100
 	} else if imgQuality < 25 {
